@@ -1,0 +1,14 @@
+{
+  "name": "fortai-all-in-one",
+  "version": "1.0.0",
+  "description": "Complete ForTAI System - All in One",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {},
+  "author": "ForTAI Team"
+}
