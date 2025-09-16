@@ -1,0 +1,14 @@
+{
+  "name": "fortai-simple-backend",
+  "version": "1.0.0",
+  "description": "Simple ForTAI Backend for Render",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {},
+  "author": "ForTAI Team"
+}
