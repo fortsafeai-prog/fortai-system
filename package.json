@@ -1,0 +1,19 @@
+{
+  "name": "fortai-vercel",
+  "version": "1.0.0",
+  "description": "ForTAI for Vercel deployment",
+  "main": "api/index.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step needed'",
+    "start": "echo 'Use vercel dev for local development'"
+  },
+  "dependencies": {
+    "puppeteer-core": "^21.5.0",
+    "chrome-aws-lambda": "^10.1.0"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "author": "ForTAI Team"
+}
