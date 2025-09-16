@@ -1,6 +1,7 @@
 const http = require('http');
 const url = require('url');
 const crypto = require('crypto');
+const puppeteer = require('puppeteer');
 
 const PORT = process.env.PORT || 8080;
 
@@ -10,6 +11,89 @@ const ANALYSIS_DELAY = 3000;
 
 function generateJobId() {
     return crypto.randomUUID();
+}
+
+async function captureScreenshot(targetUrl, timeoutMs = 10000) {
+    let browser;
+    try {
+        console.log(`Capturing screenshot for: ${targetUrl}`);
+
+        browser = await puppeteer.launch({
+            headless: true,
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process',
+                '--disable-gpu'
+            ]
+        });
+
+        const page = await browser.newPage();
+
+        await page.setViewport({
+            width: 1280,
+            height: 720,
+            deviceScaleFactor: 1
+        });
+
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+
+        try {
+            await page.goto(targetUrl, {
+                waitUntil: 'networkidle2',
+                timeout: timeoutMs
+            });
+
+            await page.waitForTimeout(2000);
+
+            const screenshot = await page.screenshot({
+                type: 'png',
+                fullPage: false,
+                encoding: 'base64'
+            });
+
+            const title = await page.title() || 'No title';
+
+            console.log(`Screenshot captured successfully for ${targetUrl}`);
+
+            return {
+                screenshot_base64: screenshot,
+                page_title: title,
+                screenshot_success: true,
+                note: "Real screenshot captured"
+            };
+
+        } catch (pageError) {
+            console.error(`Page navigation failed for ${targetUrl}:`, pageError.message);
+            return {
+                screenshot_base64: null,
+                page_title: `Failed to load: ${targetUrl}`,
+                screenshot_success: false,
+                note: `Navigation failed: ${pageError.message}`
+            };
+        }
+
+    } catch (error) {
+        console.error(`Screenshot capture failed for ${targetUrl}:`, error.message);
+        return {
+            screenshot_base64: null,
+            page_title: `Error capturing: ${targetUrl}`,
+            screenshot_success: false,
+            note: `Screenshot failed: ${error.message}`
+        };
+    } finally {
+        if (browser) {
+            try {
+                await browser.close();
+            } catch (closeError) {
+                console.error('Error closing browser:', closeError.message);
+            }
+        }
+    }
 }
 
 async function analyzeUrl(targetUrl) {
@@ -88,17 +172,15 @@ async function analyzeUrl(targetUrl) {
     const domain = targetUrl ? new URL(targetUrl).hostname : 'okänd domän';
     const swedishSummary = `Bedömning: ${verdictMap[verdict]}. Säkerhetsnivå: ${confidence}%. Domän: ${domain}. ${actionMap[verdict]}`;
 
+    // Capture real screenshot
+    const screenshotData = await captureScreenshot(targetUrl);
+
     return {
         verdict,
         confidence,
         evidence: evidence.slice(0, 4),
         swedish_summary: swedishSummary,
-        artifacts: {
-            screenshot_base64: null,
-            page_title: `Analysis for ${domain}`,
-            screenshot_success: false,
-            note: "Cloud version - analysis without screenshots"
-        }
+        artifacts: screenshotData
     };
 }
 
@@ -597,6 +679,29 @@ const chatPageHtml = `<!DOCTYPE html>
                                 resultHtml += \`<li>\${evidence}</li>\`;
                             });
                             resultHtml += '</ul></div>';
+                        }
+
+                        // Add screenshot if available
+                        if (result.artifacts && result.artifacts.screenshot_base64) {
+                            resultHtml += \`
+                                <div style="margin: 15px 0;">
+                                    <strong>📸 Skärmbild av webbsidan:</strong>
+                                    <div style="margin-top: 10px; border: 2px solid #ddd; border-radius: 8px; overflow: hidden;">
+                                        <img src="data:image/png;base64,\${result.artifacts.screenshot_base64}"
+                                             style="width: 100%; height: auto; max-width: 500px; display: block;"
+                                             alt="Screenshot av \${result.artifacts.page_title}">
+                                    </div>
+                                    <div style="font-size: 0.8rem; color: #888; margin-top: 5px;">
+                                        Titel: \${result.artifacts.page_title}
+                                    </div>
+                                </div>
+                            \`;
+                        } else if (result.artifacts && result.artifacts.note) {
+                            resultHtml += \`
+                                <div style="margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; font-size: 0.9rem; color: #666;">
+                                    📸 Skärmbild: \${result.artifacts.note}
+                                </div>
+                            \`;
                         }
 
                         resultHtml += \`

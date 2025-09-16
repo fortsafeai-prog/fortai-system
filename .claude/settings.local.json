@@ -6,7 +6,8 @@
       "Bash(curl:*)",
       "Bash(git add:*)",
       "Bash(git branch:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "ask": []
