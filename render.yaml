@@ -1,10 +1,10 @@
 services:
-  # Backend Service - Enhanced backend with Playwright
+  # Backend Service - Cloud-optimized backend (no Playwright)
   - type: web
     name: fortai-backend
     env: node
     plan: free
-    buildCommand: npm install && npx playwright install chromium
+    buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /health
     envVars:
@@ -12,9 +12,7 @@ services:
         value: production
       - key: PORT
         value: 10000
-      - key: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD
-        value: false
-    rootDir: ./enhanced-backend
+    rootDir: ./cloud-backend
 
   # Frontend Service - Chat interface
   - type: web

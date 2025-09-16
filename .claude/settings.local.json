@@ -4,7 +4,8 @@
       "WebSearch",
       "Bash(node:*)",
       "Bash(curl:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git branch:*)"
     ],
     "deny": [],
     "ask": []
