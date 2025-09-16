@@ -1,7 +1,7 @@
 services:
-  # Backend Service - Cloud-optimized backend (no Playwright)
+  # All-in-One Service - Complete ForTAI with Real Screenshots
   - type: web
-    name: fortai-backend
+    name: fortai-all-in-one
     env: node
     plan: free
     buildCommand: npm install
@@ -12,38 +12,4 @@ services:
         value: production
       - key: PORT
         value: 10000
-    rootDir: ./cloud-backend
-
-  # Frontend Service - Chat interface
-  - type: web
-    name: fortai-frontend
-    env: node
-    plan: free
-    buildCommand: npm install
-    startCommand: npm start
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 10000
-      - key: BACKEND_URL
-        value: https://fortai-backend.onrender.com
-    rootDir: ./mock-frontend
-
-  # Website Service - Landing page
-  - type: web
-    name: fortai-website
-    env: node
-    plan: free
-    buildCommand: npm install
-    startCommand: npm start
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: PORT
-        value: 10000
-      - key: FRONTEND_URL
-        value: https://fortai-frontend.onrender.com
-      - key: BACKEND_URL
-        value: https://fortai-backend.onrender.com
-    rootDir: ./website
+    rootDir: ./all-in-one
