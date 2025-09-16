@@ -4,7 +4,8 @@
   "description": "Complete ForTAI System - All in One",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "postinstall": "node node_modules/puppeteer/install.js"
   },
   "engines": {
     "node": "18"

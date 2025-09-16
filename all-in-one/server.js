@@ -28,7 +28,9 @@ async function captureScreenshot(targetUrl, timeoutMs = 10000) {
                 '--no-first-run',
                 '--no-zygote',
                 '--single-process',
-                '--disable-gpu'
+                '--disable-gpu',
+                '--memory-pressure-off',
+                '--max_old_space_size=4096'
             ]
         });
 
