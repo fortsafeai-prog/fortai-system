@@ -1,14 +1,30 @@
 // Vercel serverless function
-import puppeteer from 'puppeteer-core';
-import chrome from 'chrome-aws-lambda';
+let puppeteer;
+let chrome;
+
+try {
+  puppeteer = require('puppeteer-core');
+  chrome = require('chrome-aws-lambda');
+} catch (e) {
+  console.log('Using fallback mode without screenshots');
+}
 
 // Import the server logic
-import crypto from 'crypto';
+const crypto = require('crypto');
 
 // In-memory storage for jobs (will reset on each function call)
 const jobs = new Map();
 
 async function captureScreenshot(targetUrl, timeoutMs = 10000) {
+    if (!puppeteer || !chrome) {
+        return {
+            screenshot_base64: null,
+            page_title: `Analysis for ${targetUrl}`,
+            screenshot_success: false,
+            note: "Screenshots not available in this environment"
+        };
+    }
+
     let browser;
     try {
         console.log(`Capturing screenshot for: ${targetUrl}`);
@@ -86,7 +102,7 @@ async function captureScreenshot(targetUrl, timeoutMs = 10000) {
 }
 
 // Main handler
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
     const { method, url } = req;
     const parsedUrl = new URL(url, `https://${req.headers.host}`);
     const pathname = parsedUrl.pathname;
