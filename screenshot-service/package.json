@@ -1,0 +1,13 @@
+{
+  "name": "fortai-screenshot-service",
+  "version": "1.0.0",
+  "description": "Real screenshot service for ForTAI using Playwright",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "install-browsers": "npx playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  }
+}

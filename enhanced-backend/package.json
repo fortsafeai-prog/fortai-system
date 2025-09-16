@@ -1,0 +1,26 @@
+{
+  "name": "fortai-enhanced-backend",
+  "version": "1.0.0",
+  "description": "ForTAI Enhanced Backend with Real Screenshot Analysis",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "install-browsers": "npx playwright install chromium",
+    "postinstall": "npx playwright install chromium"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "url-analysis",
+    "security",
+    "screenshot",
+    "phishing-detection"
+  ],
+  "author": "ForTAI Team",
+  "license": "MIT"
+}

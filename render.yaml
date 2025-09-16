@@ -1,0 +1,49 @@
+services:
+  # Backend Service - Enhanced backend with Playwright
+  - type: web
+    name: fortai-backend
+    env: node
+    plan: free
+    buildCommand: npm install && npx playwright install chromium
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD
+        value: false
+    rootDir: ./enhanced-backend
+
+  # Frontend Service - Chat interface
+  - type: web
+    name: fortai-frontend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: BACKEND_URL
+        value: https://fortai-backend.onrender.com
+    rootDir: ./mock-frontend
+
+  # Website Service - Landing page
+  - type: web
+    name: fortai-website
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: FRONTEND_URL
+        value: https://fortai-frontend.onrender.com
+    rootDir: ./website

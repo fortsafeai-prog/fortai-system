@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForTAI - Chat Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            background: white;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .chat-header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 20px;
+            align-items: flex-start;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin: 0 10px;
+        }
+
+        .message.bot .message-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message.user .message-avatar {
+            background: #28a745;
+            color: white;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 18px;
+            line-height: 1.5;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            border: 1px solid #e0e0e0;
+            margin-right: auto;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+        }
+
+        .analysis-result {
+            margin-top: 10px;
+        }
+
+        .verdict {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .verdict.safe { color: #28a745; }
+        .verdict.suspicious { color: #ffc107; }
+        .verdict.dangerous { color: #dc3545; }
+
+        .confidence {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            color: #666;
+        }
+
+        .evidence-list {
+            list-style: none;
+            margin: 10px 0;
+        }
+
+        .evidence-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .evidence-item:before {
+            content: "•";
+            color: #667eea;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .screenshot {
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            max-width: 300px;
+        }
+
+        .screenshot img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .chat-input input:focus {
+            border-color: #667eea;
+        }
+
+        .chat-input button {
+            margin-left: 10px;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.2s;
+        }
+
+        .chat-input button:hover {
+            transform: translateY(-2px);
+        }
+
+        .chat-input button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            color: #666;
+        }
+
+        .loading:before {
+            content: "";
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .typing-indicator {
+            color: #666;
+            font-style: italic;
+        }
+
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            color: #667eea;
+            padding: 10px 15px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+        }
+
+        .back-link:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .chat-container {
+                width: 95%;
+                height: 90vh;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="http://localhost:8080" class="back-link">← Tillbaka till huvudsidan</a>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🛡️ ForTAI - AI Säkerhetsanalys</h1>
+            <p>Klistra in en URL för djupgående säkerhetsanalys</p>
+        </div>
+
+        <div class="chat-messages" id="messages">
+            <div class="message bot">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    Hej! Klistra in en URL nedan så gör jag en djupanalys av länken för att kontrollera om den är säker.
+                    <br><br>
+                    <strong>Exempel:</strong>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>https://google.com</li>
+                        <li>https://phishing-example.com</li>
+                        <li>http://192.168.1.1</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input">
+            <input type="url" id="urlInput" placeholder="https://example.com" />
+            <button onclick="analyzeUrl()" id="sendButton">Analysera</button>
+        </div>
+    </div>
+
+    <script>
+        let isAnalyzing = false;
+
+        function addMessage(content, type = 'bot') {
+            const messagesContainer = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+
+            const avatar = type === 'bot' ? '🤖' : '👤';
+
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-content">${content}</div>
+            `;
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function addTypingIndicator() {
+            const messagesContainer = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            messageDiv.id = 'typing-indicator';
+
+            messageDiv.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div class="loading">Analyserar URL...</div>
+                    <div class="typing-indicator">
+                        Utför säkerhetskontroller: DNS, TLS, innehåll, screenshot...
+                    </div>
+                </div>
+            `;
+
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function formatAnalysisResult(result) {
+            const verdictIcons = {
+                'safe': '✅',
+                'suspicious': '⚠️',
+                'dangerous': '❌'
+            };
+
+            const verdictTexts = {
+                'safe': 'Säker',
+                'suspicious': 'Misstänkt',
+                'dangerous': 'Farlig'
+            };
+
+            let html = `
+                <div class="analysis-result">
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                        <span style="font-size: 1.5rem;">${verdictIcons[result.verdict] || '❓'}</span>
+                        <span class="verdict ${result.verdict}">
+                            ${verdictTexts[result.verdict] || 'Okänd'}
+                        </span>
+                    </div>
+
+                    <div class="confidence">
+                        Säkerhetsnivå: ${result.confidence || 0}%
+                    </div>
+
+                    <p style="margin-bottom: 20px; font-weight: 500;">
+                        ${result.swedish_summary || 'Analys slutförd.'}
+                    </p>
+            `;
+
+            if (result.evidence && result.evidence.length > 0) {
+                html += `
+                    <div>
+                        <h4 style="margin-bottom: 10px; color: #333;">Analysresultat:</h4>
+                        <ul class="evidence-list">
+                `;
+
+                result.evidence.forEach(evidence => {
+                    html += `<li class="evidence-item">${evidence}</li>`;
+                });
+
+                html += `</ul></div>`;
+            }
+
+            if (result.artifacts && result.artifacts.screenshot_base64) {
+                html += `
+                    <div style="margin-top: 15px;">
+                        <h5 style="margin-bottom: 10px; color: #666;">📷 Skärmdump:</h5>
+                        <div class="screenshot">
+                            <img src="data:image/png;base64,${result.artifacts.screenshot_base64}"
+                                 alt="Website screenshot"
+                                 style="width: 100%; height: auto;" />
+                        </div>
+                        ${result.artifacts.page_title ?
+                            `<div style="font-size: 0.8rem; color: #666; margin-top: 5px; font-style: italic;">
+                                Sidtitel: ${result.artifacts.page_title}
+                            </div>` : ''
+                        }
+                    </div>
+                `;
+            }
+
+            if (result.url) {
+                html += `
+                    <div style="margin-top: 15px; font-size: 0.9rem; color: #666; word-break: break-all;">
+                        <strong>Analyserad URL:</strong> ${result.url}
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        // Get backend URL from environment or fallback to localhost
+        const getBackendUrl = () => {
+            // In production, this will be set by the server
+            return window.BACKEND_URL || 'http://localhost:8000';
+        };
+
+        async function analyzeUrl() {
+            const urlInput = document.getElementById('urlInput');
+            const sendButton = document.getElementById('sendButton');
+            const url = urlInput.value.trim();
+
+            if (!url || isAnalyzing) return;
+
+            // Validate URL
+            try {
+                new URL(url.startsWith('http') ? url : `https://${url}`);
+            } catch (e) {
+                addMessage('❌ Vänligen ange en giltig URL. Exempel: https://example.com eller example.com');
+                return;
+            }
+
+            // Add user message
+            addMessage(`Analysera: ${url}`, 'user');
+
+            // Clear input and disable button
+            urlInput.value = '';
+            isAnalyzing = true;
+            sendButton.disabled = true;
+            sendButton.textContent = 'Analyserar...';
+
+            // Add typing indicator
+            addTypingIndicator();
+
+            try {
+                // Start analysis
+                const analyzeResponse = await fetch(`${getBackendUrl()}/api/analyze/url`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                if (!analyzeResponse.ok) {
+                    throw new Error('Failed to start analysis');
+                }
+
+                const analyzeData = await analyzeResponse.json();
+                const jobId = analyzeData.job_id;
+
+                // Poll for results
+                let attempts = 0;
+                const maxAttempts = 20; // 20 seconds max
+
+                const pollResults = async () => {
+                    if (attempts >= maxAttempts) {
+                        throw new Error('Analysis timeout');
+                    }
+
+                    const resultResponse = await fetch(`${getBackendUrl()}/api/results/${jobId}`);
+
+                    if (!resultResponse.ok) {
+                        throw new Error('Failed to get results');
+                    }
+
+                    const result = await resultResponse.json();
+
+                    if (result.status === 'completed') {
+                        removeTypingIndicator();
+                        addMessage(formatAnalysisResult(result));
+                    } else {
+                        attempts++;
+                        setTimeout(pollResults, 1000); // Check again in 1 second
+                    }
+                };
+
+                await pollResults();
+
+            } catch (error) {
+                console.error('Analysis error:', error);
+                removeTypingIndicator();
+                addMessage(`❌ Kunde inte analysera URL: ${error.message}. Kontrollera att backend-servern är tillgänglig.`);
+            } finally {
+                isAnalyzing = false;
+                sendButton.disabled = false;
+                sendButton.textContent = 'Analysera';
+            }
+        }
+
+        // Enter key support
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !isAnalyzing) {
+                analyzeUrl();
+            }
+        });
+
+        // Auto-focus input
+        document.getElementById('urlInput').focus();
+    </script>
+</body>
+</html>
