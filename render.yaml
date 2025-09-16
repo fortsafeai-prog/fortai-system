@@ -44,4 +44,6 @@ services:
         value: 10000
       - key: FRONTEND_URL
         value: https://fortai-frontend.onrender.com
+      - key: BACKEND_URL
+        value: https://fortai-backend.onrender.com
     rootDir: ./website

@@ -4,6 +4,8 @@ const path = require('path');
 const url = require('url');
 
 const PORT = process.env.PORT || 8080;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
 
 // MIME types
 const mimeTypes = {
@@ -21,11 +23,17 @@ function serveFile(filePath, res) {
     const ext = path.extname(filePath);
     const contentType = mimeTypes[ext] || 'text/plain';
 
-    fs.readFile(filePath, (err, data) => {
+    fs.readFile(filePath, 'utf8', (err, data) => {
         if (err) {
             res.writeHead(404, { 'Content-Type': 'text/html' });
             res.end('<h1>404 - File Not Found</h1>');
             return;
+        }
+
+        // Replace localhost URLs in HTML files with deployed URLs
+        if (ext === '.html') {
+            data = data.replace(/http:\/\/localhost:3000/g, FRONTEND_URL);
+            data = data.replace(/http:\/\/localhost:8000/g, BACKEND_URL);
         }
 
         res.writeHead(200, {
@@ -65,9 +73,9 @@ const server = http.createServer((req, res) => {
             timestamp: new Date().toISOString(),
             version: "1.0.0",
             services: {
-                frontend: "http://localhost:3000",
-                backend: "http://localhost:8000",
-                docs: "http://localhost:8000/docs",
+                frontend: FRONTEND_URL,
+                backend: BACKEND_URL,
+                docs: `${BACKEND_URL}/docs`,
                 minio: "http://localhost:9001"
             }
         };
