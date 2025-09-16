@@ -1,19 +1,6 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "all-in-one/server.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "all-in-one/server.js"
-    }
-  ],
   "functions": {
-    "all-in-one/server.js": {
+    "api/index.js": {
       "maxDuration": 30
     }
   },

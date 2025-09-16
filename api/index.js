@@ -1,9 +1,9 @@
 // Vercel serverless function
-const puppeteer = require('puppeteer-core');
-const chrome = require('chrome-aws-lambda');
+import puppeteer from 'puppeteer-core';
+import chrome from 'chrome-aws-lambda';
 
 // Import the server logic
-const crypto = require('crypto');
+import crypto from 'crypto';
 
 // In-memory storage for jobs (will reset on each function call)
 const jobs = new Map();
