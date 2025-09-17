@@ -3,6 +3,18 @@ const https = require('https');
 const url = require('url');
 const crypto = require('crypto');
 
+// Puppeteer for screenshots (cloud-optimized)
+let puppeteer = null;
+let screenshotEnabled = false;
+
+try {
+    puppeteer = require('puppeteer');
+    screenshotEnabled = process.env.SCREENSHOT_ENABLED === 'true';
+    console.log(`📷 Screenshot functionality: ${screenshotEnabled ? 'ENABLED' : 'DISABLED'}`);
+} catch (error) {
+    console.log('📷 Puppeteer not available - screenshots disabled');
+}
+
 const PORT = process.env.PORT || 8080;
 
 // In-memory storage for jobs
@@ -131,6 +143,24 @@ async function performComprehensiveAnalysis(targetUrl) {
             evidence.push("🚫 Kunde inte hämta sidinnehåll");
         }
 
+        // 2.5. Screenshot Capture (cloud-optimized)
+        let screenshotResult = null;
+        try {
+            if (screenshotEnabled && riskScore < 70) { // Only screenshot if not obviously dangerous
+                console.log('📷 Attempting screenshot capture...');
+                screenshotResult = await captureScreenshot(targetUrl, 8000);
+
+                if (screenshotResult.success) {
+                    evidence.push("📷 Skärmbild tagen för visuell verifiering");
+                } else {
+                    evidence.push("📷 Kunde inte ta skärmbild (detta påverkar inte säkerhetsanalysen)");
+                }
+            }
+        } catch (screenshotError) {
+            console.error('Screenshot capture error:', screenshotError.message);
+            evidence.push("📷 Skärmbildsfel (detta påverkar inte säkerhetsanalysen)");
+        }
+
         // 3. Brand spoofing detection
         const trustedBrands = [
             'google', 'microsoft', 'apple', 'amazon', 'paypal', 'facebook',
@@ -180,10 +210,13 @@ async function performComprehensiveAnalysis(targetUrl) {
         features,
         swedish_summary: swedishSummary,
         artifacts: {
-            screenshot_base64: null,
-            page_title: `Analys för ${new URL(targetUrl).hostname}`,
-            screenshot_success: false,
-            note: "Skärmbild inte tillgänglig i cloud-versionen - använd lokal installation för screenshots"
+            screenshot_base64: screenshotResult?.screenshot_base64 || null,
+            page_title: screenshotResult?.page_title || `Analys för ${new URL(targetUrl).hostname}`,
+            screenshot_success: screenshotResult?.success || false,
+            screenshot_error: screenshotResult?.error || null,
+            note: screenshotEnabled
+                ? (screenshotResult?.success ? "Skärmbild tillgänglig" : "Skärmbild misslyckades")
+                : "Skärmbild inte aktiverad i denna miljö"
         }
     };
 }
@@ -233,6 +266,128 @@ async function fetchPageContent(targetUrl, timeout = 8000) {
 
         makeRequest(targetUrl);
     });
+}
+
+// Cloud-optimized screenshot function
+async function captureScreenshot(targetUrl, timeout = 10000) {
+    if (!screenshotEnabled || !puppeteer) {
+        return {
+            success: false,
+            screenshot_base64: null,
+            page_title: null,
+            error: 'Screenshot functionality not available'
+        };
+    }
+
+    let browser = null;
+    try {
+        console.log(`📷 Starting screenshot capture for: ${targetUrl}`);
+
+        // Launch browser with cloud-optimized settings for Render.com
+        const browserOptions = {
+            headless: 'new',
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process',
+                '--disable-gpu',
+                '--disable-background-timer-throttling',
+                '--disable-backgrounding-occluded-windows',
+                '--disable-renderer-backgrounding',
+                '--disable-web-security',
+                '--disable-features=TranslateUI',
+                '--disable-ipc-flooding-protection',
+                '--window-size=1280,720'
+            ],
+            timeout: timeout
+        };
+
+        // Try to find Chrome/Chromium executable for cloud environments
+        const possibleChromePaths = [
+            process.env.PUPPETEER_EXECUTABLE_PATH,
+            '/opt/render/project/.render/chrome/opt/google/chrome/chrome',
+            '/usr/bin/chromium-browser',
+            '/usr/bin/chromium',
+            '/usr/bin/google-chrome-stable',
+            '/usr/bin/google-chrome'
+        ];
+
+        for (const chromePath of possibleChromePaths) {
+            if (chromePath) {
+                try {
+                    // Check if path exists (simple check)
+                    browserOptions.executablePath = chromePath;
+                    console.log(`📷 Trying Chrome path: ${chromePath}`);
+                    break;
+                } catch (e) {
+                    console.log(`📷 Chrome path not available: ${chromePath}`);
+                }
+            }
+        }
+
+        browser = await puppeteer.launch(browserOptions);
+        const page = await browser.newPage();
+
+        // Set viewport and user agent
+        await page.setViewport({ width: 1280, height: 720 });
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+
+        // Set shorter timeout for page navigation
+        await page.setDefaultNavigationTimeout(timeout);
+        await page.setDefaultTimeout(timeout);
+
+        // Navigate to page with error handling
+        console.log(`📷 Navigating to: ${targetUrl}`);
+        await page.goto(targetUrl, {
+            waitUntil: 'domcontentloaded',
+            timeout: timeout
+        });
+
+        // Wait a bit for dynamic content to load
+        await page.waitForTimeout(2000);
+
+        // Get page title
+        const pageTitle = await page.title().catch(() => 'Unknown Title');
+
+        // Take screenshot
+        console.log('📷 Capturing screenshot...');
+        const screenshot = await page.screenshot({
+            type: 'png',
+            fullPage: false,
+            encoding: 'base64'
+        });
+
+        console.log(`📷 Screenshot captured successfully - Size: ${screenshot.length} bytes`);
+
+        return {
+            success: true,
+            screenshot_base64: screenshot,
+            page_title: pageTitle,
+            error: null
+        };
+
+    } catch (error) {
+        console.error('📷 Screenshot capture failed:', error.message);
+        return {
+            success: false,
+            screenshot_base64: null,
+            page_title: null,
+            error: error.message
+        };
+    } finally {
+        if (browser) {
+            try {
+                await browser.close();
+                console.log('📷 Browser closed successfully');
+            } catch (closeError) {
+                console.error('📷 Error closing browser:', closeError.message);
+            }
+        }
+    }
 }
 
 function generateAISummary(verdict, confidence, evidence, targetUrl) {
@@ -1586,6 +1741,29 @@ const enhancedChatPageHtml = `<!DOCTYPE html>
                 resultHtml += '</ul></div>';
             }
 
+            // Add screenshot if available
+            if (result.artifacts && result.artifacts.screenshot_success && result.artifacts.screenshot_base64) {
+                resultHtml += \`
+                    <div style="margin: 15px 0;">
+                        <strong>📷 Skärmbild av webbsidan:</strong><br>
+                        <img src="data:image/png;base64,\${result.artifacts.screenshot_base64}"
+                             style="max-width: 100%; height: auto; border: 1px solid #e0e0e0; border-radius: 6px; margin-top: 8px; cursor: pointer;"
+                             onclick="window.open(this.src, '_blank')"
+                             alt="Skärmbild av \${result.artifacts.page_title || 'webbsidan'}" />
+                        <div style="font-size: 0.8rem; color: #666; margin-top: 4px;">
+                            Klicka för att förstora • Titel: \${result.artifacts.page_title || 'Okänd'}
+                        </div>
+                    </div>
+                \`;
+            } else if (result.artifacts && result.artifacts.note) {
+                resultHtml += \`
+                    <div style="margin: 15px 0; padding: 10px; background: rgba(0,0,0,0.05); border-radius: 6px; font-size: 0.9rem; color: #666;">
+                        📷 <strong>Skärmbild:</strong> \${result.artifacts.note}
+                        \${result.artifacts.screenshot_error ? '<br>Fel: ' + result.artifacts.screenshot_error : ''}
+                    </div>
+                \`;
+            }
+
             resultHtml += \`
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0; font-size: 0.9rem; color: #666;">
                     <strong>📊 Teknisk information:</strong><br>
@@ -1658,9 +1836,11 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(200, corsHeaders);
         res.end(JSON.stringify({
             status: "healthy",
-            service: "ForTAI Enhanced All-in-One",
-            version: "comprehensive-cloud-optimized",
-            features: ["url-analysis", "ai-summaries", "swedish-interface"],
+            service: "ForTAI Enhanced All-in-One with Screenshots",
+            version: "comprehensive-cloud-optimized-v2.1",
+            features: ["url-analysis", "ai-summaries", "swedish-interface", "screenshots"],
+            screenshot_enabled: screenshotEnabled,
+            puppeteer_available: !!puppeteer,
             analysis_delay: ANALYSIS_DELAY + "ms"
         }));
         return;
@@ -1864,9 +2044,16 @@ server.listen(PORT, () => {
     console.log('  ✅ 15+ security checks per URL');
     console.log('  ✅ AI-generated Swedish summaries');
     console.log('  ✅ Advanced risk scoring algorithm');
-    console.log('  ✅ Cloud-optimized (no Puppeteer dependency)');
+    console.log(`  ${screenshotEnabled ? '✅' : '⚠️'} Screenshot capture ${screenshotEnabled ? 'ENABLED' : 'DISABLED'}`);
     console.log('  ✅ Complete API documentation');
     console.log('');
+    if (screenshotEnabled) {
+        console.log('📷 Screenshot Configuration:');
+        console.log(`  • Puppeteer executable: ${process.env.PUPPETEER_EXECUTABLE_PATH || 'bundled'}`);
+        console.log(`  • Screenshot timeout: 8 seconds`);
+        console.log(`  • Cloud optimized for Render.com`);
+        console.log('');
+    }
     console.log('Press Ctrl+C to stop');
     console.log('='.repeat(70));
 });

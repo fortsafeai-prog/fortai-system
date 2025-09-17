@@ -1,5 +1,5 @@
 services:
-  # ForTAI All-in-One - Complete System for Render.com
+  # ForTAI All-in-One - Complete System with Screenshots for Render.com
   - type: web
     name: fortai-all-in-one
     env: node
@@ -13,5 +13,7 @@ services:
       - key: PORT
         value: 10000
       - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
+        value: false
+      - key: SCREENSHOT_ENABLED
         value: true
     rootDir: ./all-in-one

@@ -1,12 +1,16 @@
 {
   "name": "fortai-all-in-one",
-  "version": "2.0.0",
-  "description": "Complete ForTAI System - Enhanced Cloud-Optimized All-in-One",
+  "version": "2.1.0",
+  "description": "Complete ForTAI System - Enhanced Cloud-Optimized All-in-One with Screenshots",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "local": "node server-original.js"
+    "local": "node server-original.js",
+    "postinstall": "node -e \"console.log('Installing Chrome dependencies for Render.com...')\""
+  },
+  "dependencies": {
+    "puppeteer": "^21.5.0"
   },
   "engines": {
     "node": "22.x"
@@ -17,7 +21,9 @@
     "ai",
     "phishing-detection",
     "swedish",
-    "cloud-optimized"
+    "cloud-optimized",
+    "screenshots",
+    "puppeteer"
   ],
   "author": "ForTAI Team",
   "license": "MIT"
