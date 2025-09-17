@@ -1,14 +1,17 @@
 services:
-  # Cloud Backend - Optimized for Render.com (No Puppeteer)
+  # ForTAI All-in-One - Complete System for Render.com
   - type: web
-    name: fortai-cloud-backend
+    name: fortai-all-in-one
     env: node
     plan: free
-    buildCommand: npm install
-    startCommand: npm start
+    buildCommand: cd all-in-one && npm install
+    startCommand: cd all-in-one && npm start
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
+      - key: PUPPETEER_SKIP_CHROMIUM_DOWNLOAD
+        value: true
+    rootDir: ./all-in-one

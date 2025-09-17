@@ -1,17 +1,24 @@
 {
   "name": "fortai-all-in-one",
-  "version": "1.0.0",
-  "description": "Complete ForTAI System - All in One",
+  "version": "2.0.0",
+  "description": "Complete ForTAI System - Enhanced Cloud-Optimized All-in-One",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "postinstall": "node node_modules/puppeteer/install.js"
+    "dev": "node server.js",
+    "local": "node server-original.js"
   },
   "engines": {
     "node": "22.x"
   },
-  "dependencies": {
-    "puppeteer": "^21.5.0"
-  },
-  "author": "ForTAI Team"
+  "keywords": [
+    "security",
+    "url-analysis",
+    "ai",
+    "phishing-detection",
+    "swedish",
+    "cloud-optimized"
+  ],
+  "author": "ForTAI Team",
+  "license": "MIT"
 }
