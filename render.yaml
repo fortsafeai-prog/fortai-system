@@ -1,7 +1,7 @@
 services:
-  # All-in-One Service - Complete ForTAI with Real Screenshots
+  # Cloud Backend - Optimized for Render.com (No Puppeteer)
   - type: web
-    name: fortai-all-in-one
+    name: fortai-cloud-backend
     env: node
     plan: free
     buildCommand: npm install
@@ -12,4 +12,4 @@ services:
         value: production
       - key: PORT
         value: 10000
-    rootDir: ./all-in-one
+    rootDir: ./cloud-backend
