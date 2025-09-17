@@ -20,6 +20,7 @@ async function performComprehensiveAnalysis(targetUrl) {
     let riskScore = 0;
     const evidence = [];
     const features = {};
+    let pageData = null;
 
     try {
         const urlObj = new URL(targetUrl);
@@ -94,7 +95,6 @@ async function performComprehensiveAnalysis(targetUrl) {
         }
 
         // 2. Content Analysis (if accessible)
-        let pageData = null;
         try {
             pageData = await fetchPageContent(targetUrl);
 
@@ -181,7 +181,7 @@ async function performComprehensiveAnalysis(targetUrl) {
         swedish_summary: swedishSummary,
         artifacts: {
             screenshot_base64: null,
-            page_title: pageData?.title || `Analys för ${new URL(targetUrl).hostname}`,
+            page_title: `Analys för ${new URL(targetUrl).hostname}`,
             screenshot_success: false,
             note: "Skärmbild inte tillgänglig i cloud-versionen - använd lokal installation för screenshots"
         }
