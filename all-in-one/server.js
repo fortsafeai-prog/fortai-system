@@ -923,235 +923,529 @@ const enhancedLandingPageHtml = `<!DOCTYPE html>
 </body>
 </html>`;
 
-// Enhanced chat interface with real-time analysis
+// ChatGPT-style black & white minimalist chat interface
 const enhancedChatPageHtml = `<!DOCTYPE html>
 <html lang="sv">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ForTAI - AI Chat Interface</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --color-primary: #000000;
+            --color-secondary: #ffffff;
+            --color-accent: #333333;
+            --color-text: #1a1a1a;
+            --color-text-light: #666666;
+            --color-border: #e0e0e0;
+            --color-bg-light: #f8f9fa;
+            --color-bg-darker: #f5f5f5;
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+            --font-size-sm: 0.875rem;
+            --font-size-base: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            --border-radius: 0.375rem;
+            --border-radius-lg: 0.75rem;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .back-link {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(255,255,255,0.9);
-            color: #667eea;
-            padding: 10px 15px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: bold;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s;
-        }
-
-        .back-link:hover {
-            background: white;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        .chat-container {
-            width: 90%;
-            max-width: 900px;
-            height: 85vh;
-            background: white;
-            border-radius: 20px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--color-secondary);
+            color: var(--color-text);
+            line-height: 1.6;
             overflow: hidden;
         }
 
+        /* Header */
         .chat-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: var(--color-secondary);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--spacing-lg);
+            z-index: 1000;
         }
 
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            color: var(--color-text-light);
+            text-decoration: none;
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .back-link:hover {
+            color: var(--color-primary);
+        }
+
+        .chat-title {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .new-chat-btn {
+            background: var(--color-primary);
+            color: var(--color-secondary);
+            border: none;
+            padding: var(--spacing-xs) var(--spacing-md);
+            border-radius: var(--border-radius);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .new-chat-btn:hover {
+            background: var(--color-accent);
+        }
+
+        /* Main container */
+        .chat-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            max-width: 768px;
+            margin: 0 auto;
+            background: var(--color-secondary);
+        }
+
+        /* Messages area */
         .chat-messages {
             flex: 1;
-            padding: 20px;
+            padding-top: 80px;
+            padding-bottom: 120px;
             overflow-y: auto;
-            background: #f8f9fa;
+            scroll-behavior: smooth;
         }
 
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--color-border);
+            border-radius: 3px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: var(--color-text-light);
+        }
+
+        /* Message styling */
         .message {
-            display: flex;
-            margin-bottom: 20px;
-            align-items: flex-start;
+            padding: var(--spacing-lg) var(--spacing-lg);
+            border-bottom: 1px solid var(--color-border);
         }
 
-        .message.bot { justify-content: flex-start; }
-        .message.user { justify-content: flex-end; }
+        .message.user {
+            background: var(--color-bg-light);
+        }
+
+        .message.bot {
+            background: var(--color-secondary);
+        }
+
+        .message-wrapper {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+        }
 
         .message-avatar {
-            width: 40px;
-            height: 40px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
-            margin: 0 10px;
-        }
-
-        .message.bot .message-avatar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            font-size: var(--font-size-sm);
+            font-weight: 600;
         }
 
         .message.user .message-avatar {
-            background: #28a745;
-            color: white;
+            background: var(--color-primary);
+            color: var(--color-secondary);
+        }
+
+        .message.bot .message-avatar {
+            background: var(--color-accent);
+            color: var(--color-secondary);
+        }
+
+        .message-author {
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            color: var(--color-primary);
         }
 
         .message-content {
-            max-width: 75%;
-            padding: 15px 20px;
-            border-radius: 18px;
-            line-height: 1.5;
+            line-height: 1.7;
+            color: var(--color-text);
+            word-wrap: break-word;
         }
 
-        .message.bot .message-content {
-            background: white;
-            border: 1px solid #e0e0e0;
-            margin-right: auto;
+        .message-content p {
+            margin-bottom: var(--spacing-sm);
         }
 
-        .message.user .message-content {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            margin-left: auto;
+        .message-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Input area */
+        .chat-input-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--color-secondary);
+            border-top: 1px solid var(--color-border);
+            padding: var(--spacing-lg);
+        }
+
+        .chat-input-wrapper {
+            max-width: 768px;
+            margin: 0 auto;
+            position: relative;
         }
 
         .chat-input {
-            display: flex;
-            padding: 20px;
-            background: white;
-            border-top: 1px solid #e0e0e0;
-        }
-
-        .chat-input input {
-            flex: 1;
-            padding: 15px 20px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            font-size: 1rem;
+            width: 100%;
+            min-height: 52px;
+            padding: var(--spacing-md) 50px var(--spacing-md) var(--spacing-md);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius-lg);
+            font-size: var(--font-size-base);
+            font-family: inherit;
+            line-height: 1.5;
+            background: var(--color-secondary);
+            color: var(--color-text);
+            resize: none;
             outline: none;
+            transition: var(--transition);
         }
 
-        .chat-input button {
-            margin-left: 10px;
-            padding: 15px 25px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+        .chat-input:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .chat-input::placeholder {
+            color: var(--color-text-light);
+        }
+
+        .send-button {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            background: var(--color-primary);
+            color: var(--color-secondary);
             border: none;
-            border-radius: 25px;
+            border-radius: var(--border-radius);
             cursor: pointer;
-            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-sm);
+            transition: var(--transition);
         }
 
-        .chat-input button:disabled {
-            opacity: 0.6;
+        .send-button:hover:not(:disabled) {
+            background: var(--color-accent);
+        }
+
+        .send-button:disabled {
+            background: var(--color-border);
             cursor: not-allowed;
         }
 
-        .verdict.safe { color: #28a745; font-weight: bold; }
-        .verdict.suspicious { color: #ffc107; font-weight: bold; }
-        .verdict.dangerous { color: #dc3545; font-weight: bold; }
+        /* Analysis styling */
+        .verdict.safe { color: #059669; font-weight: 600; }
+        .verdict.suspicious { color: #d97706; font-weight: 600; }
+        .verdict.dangerous { color: #dc2626; font-weight: 600; }
 
         .loading {
-            color: #666;
+            color: var(--color-text-light);
             font-style: italic;
-            padding: 10px;
-            border-radius: 10px;
-            background: rgba(102, 126, 234, 0.1);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
         }
 
         .analysis-result {
-            background: rgba(0,0,0,0.02);
-            border-radius: 10px;
-            padding: 15px;
-            margin: 10px 0;
+            background: var(--color-bg-light);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            margin: var(--spacing-sm) 0;
+            border: 1px solid var(--color-border);
         }
 
         .evidence-list {
-            margin: 10px 0;
-            padding-left: 20px;
+            margin: var(--spacing-sm) 0;
+            padding-left: var(--spacing-lg);
         }
 
         .evidence-list li {
-            margin: 5px 0;
-            line-height: 1.4;
+            margin: var(--spacing-xs) 0;
+            line-height: 1.6;
         }
 
+        .code {
+            background: var(--color-bg-darker);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.9em;
+            color: var(--color-primary);
+        }
+
+        /* Welcome message styling */
+        .welcome-content {
+            text-align: center;
+            padding: var(--spacing-xl) var(--spacing-lg);
+            color: var(--color-text-light);
+        }
+
+        .welcome-title {
+            font-size: var(--font-size-2xl);
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .welcome-subtitle {
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .example-prompts {
+            display: grid;
+            gap: var(--spacing-sm);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .example-prompt {
+            background: var(--color-bg-light);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            text-align: left;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .example-prompt:hover {
+            border-color: var(--color-primary);
+            background: var(--color-secondary);
+        }
+
+        .example-prompt-title {
+            font-weight: 500;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .example-prompt-desc {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-light);
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .chat-container { width: 95%; height: 90vh; }
-            .message-content { max-width: 85%; }
+            .chat-container {
+                padding: 0;
+            }
+
+            .chat-messages {
+                padding-top: 70px;
+                padding-bottom: 100px;
+            }
+
+            .message {
+                padding: var(--spacing-md);
+            }
+
+            .chat-input-container {
+                padding: var(--spacing-md);
+            }
+
+            .chat-header {
+                padding: 0 var(--spacing-md);
+            }
+
+            .header-left {
+                gap: var(--spacing-sm);
+            }
+
+            .chat-title {
+                font-size: var(--font-size-base);
+            }
         }
     </style>
 </head>
 <body>
-    <a href="/" class="back-link">← Tillbaka till huvudsidan</a>
-
-    <div class="chat-container">
-        <div class="chat-header">
-            <h1>🛡️ ForTAI - AI Säkerhetsanalys</h1>
-            <p>Klistra in en URL för djupgående AI-driven säkerhetsanalys</p>
+    <!-- Header -->
+    <div class="chat-header">
+        <div class="header-left">
+            <a href="/" class="back-link">← Tillbaka</a>
+            <div class="chat-title">ForTAI</div>
         </div>
+        <button class="new-chat-btn" onclick="newChat()">Ny chat</button>
+    </div>
 
+    <!-- Main container -->
+    <div class="chat-container">
+        <!-- Messages area -->
         <div class="chat-messages" id="messages">
-            <div class="message bot">
-                <div class="message-avatar">🤖</div>
-                <div class="message-content">
-                    <strong>Välkommen till ForTAI!</strong>
-                    <br><br>
-                    Jag är din AI-assistent för URL-säkerhetsanalys. Klistra in en länk nedan så gör jag en djupanalys med 15+ säkerhetskontroller.
-                    <br><br>
-                    <strong>Exempel på URLs att testa:</strong>
-                    <div class="evidence-list">
-                        <li>https://google.com (säker)</li>
-                        <li>https://github.com (säker)</li>
-                        <li>http://192.168.1.1 (misstänkt - IP-adress)</li>
-                        <li>https://phishing-example.tk (farlig - misstänkt TLD)</li>
-                    </div>
+            <!-- Welcome screen when no messages -->
+            <div id="welcome-screen" class="welcome-content">
+                <div class="welcome-title">🛡️ ForTAI</div>
+                <div class="welcome-subtitle">AI-driven URL säkerhetsanalys</div>
 
-                    <em>💡 Tips: Jag analyserar URL-struktur, domäninformation, innehåll och mycket mer!</em>
+                <div class="example-prompts">
+                    <div class="example-prompt" onclick="setUrl('https://google.com')">
+                        <div class="example-prompt-title">Testa en säker webbsida</div>
+                        <div class="example-prompt-desc">Analysera https://google.com</div>
+                    </div>
+                    <div class="example-prompt" onclick="setUrl('http://192.168.1.1')">
+                        <div class="example-prompt-title">Testa en misstänkt länk</div>
+                        <div class="example-prompt-desc">Analysera en IP-adress</div>
+                    </div>
+                    <div class="example-prompt" onclick="setUrl('https://github.com')">
+                        <div class="example-prompt-title">Verifiera utvecklarverktyg</div>
+                        <div class="example-prompt-desc">Kontrollera GitHub säkerhet</div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="chat-input">
-            <input type="url" id="urlInput" placeholder="https://example.com eller example.com" />
-            <button onclick="analyzeUrl()" id="sendButton">Analysera 🔍</button>
+        <!-- Input area -->
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <textarea
+                    id="urlInput"
+                    class="chat-input"
+                    placeholder="Klistra in URL här för säkerhetsanalys..."
+                    rows="1"
+                ></textarea>
+                <button class="send-button" onclick="analyzeUrl()" id="sendButton">
+                    ↑
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
         let isAnalyzing = false;
+        let messageCount = 0;
+
+        function hideWelcomeScreen() {
+            const welcomeScreen = document.getElementById('welcome-screen');
+            if (welcomeScreen) {
+                welcomeScreen.style.display = 'none';
+            }
+        }
+
+        function newChat() {
+            const messagesContainer = document.getElementById('messages');
+            messagesContainer.innerHTML = \`
+                <div id="welcome-screen" class="welcome-content">
+                    <div class="welcome-title">🛡️ ForTAI</div>
+                    <div class="welcome-subtitle">AI-driven URL säkerhetsanalys</div>
+
+                    <div class="example-prompts">
+                        <div class="example-prompt" onclick="setUrl('https://google.com')">
+                            <div class="example-prompt-title">Testa en säker webbsida</div>
+                            <div class="example-prompt-desc">Analysera https://google.com</div>
+                        </div>
+                        <div class="example-prompt" onclick="setUrl('http://192.168.1.1')">
+                            <div class="example-prompt-title">Testa en misstänkt länk</div>
+                            <div class="example-prompt-desc">Analysera en IP-adress</div>
+                        </div>
+                        <div class="example-prompt" onclick="setUrl('https://github.com')">
+                            <div class="example-prompt-title">Verifiera utvecklarverktyg</div>
+                            <div class="example-prompt-desc">Kontrollera GitHub säkerhet</div>
+                        </div>
+                    </div>
+                </div>
+            \`;
+            messageCount = 0;
+            document.getElementById('urlInput').value = '';
+        }
+
+        function setUrl(url) {
+            document.getElementById('urlInput').value = url;
+            document.getElementById('urlInput').focus();
+        }
 
         function addMessage(content, type = 'bot') {
+            if (messageCount === 0) {
+                hideWelcomeScreen();
+            }
+            messageCount++;
+
             const messagesContainer = document.getElementById('messages');
             const messageDiv = document.createElement('div');
             messageDiv.className = \`message \${type}\`;
 
-            const avatar = type === 'bot' ? '🤖' : '👤';
+            const authorName = type === 'bot' ? 'ForTAI' : 'Du';
+            const avatar = type === 'bot' ? 'AI' : 'U';
 
             messageDiv.innerHTML = \`
-                <div class="message-avatar">\${avatar}</div>
-                <div class="message-content">\${content}</div>
+                <div class="message-wrapper">
+                    <div class="message-header">
+                        <div class="message-avatar">\${avatar}</div>
+                        <div class="message-author">\${authorName}</div>
+                    </div>
+                    <div class="message-content">\${content}</div>
+                </div>
             \`;
 
             messagesContainer.appendChild(messageDiv);
@@ -1175,12 +1469,11 @@ const enhancedChatPageHtml = `<!DOCTYPE html>
             }
 
             // Add user message
-            addMessage(\`🔍 Analyserar: <strong>\${url}</strong>\`, 'user');
+            addMessage(\`\${url}\`, 'user');
 
             urlInput.value = '';
             isAnalyzing = true;
             sendButton.disabled = true;
-            sendButton.textContent = 'Analyserar...';
 
             // Add loading message
             addMessage(\`
@@ -1241,7 +1534,6 @@ const enhancedChatPageHtml = `<!DOCTYPE html>
             } finally {
                 isAnalyzing = false;
                 sendButton.disabled = false;
-                sendButton.textContent = 'Analysera 🔍';
             }
         }
 
@@ -1305,15 +1597,23 @@ const enhancedChatPageHtml = `<!DOCTYPE html>
             addMessage(resultHtml);
         }
 
-        // Enter key support
-        document.getElementById('urlInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !isAnalyzing) {
+        // Auto-resize textarea and handle Enter key
+        const urlInput = document.getElementById('urlInput');
+
+        urlInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+        urlInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey && !isAnalyzing) {
+                e.preventDefault();
                 analyzeUrl();
             }
         });
 
         // Focus input on load
-        document.getElementById('urlInput').focus();
+        urlInput.focus();
     </script>
 </body>
 </html>`;
