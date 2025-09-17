@@ -1,19 +1,25 @@
 {
-  "name": "fortai-vercel",
+  "name": "fortai-system",
   "version": "1.0.0",
-  "description": "ForTAI for Vercel deployment",
-  "main": "api/index.js",
+  "description": "ForTAI AI URL Security Analysis System",
+  "main": "cloud-backend/server.js",
   "scripts": {
-    "dev": "vercel dev",
-    "build": "echo 'No build step needed'",
-    "start": "echo 'Use vercel dev for local development'"
+    "start": "node cloud-backend/server.js",
+    "dev": "node cloud-backend/server.js",
+    "postinstall": "cd cloud-backend && npm install"
   },
   "dependencies": {
-    "puppeteer-core": "^21.5.0",
-    "chrome-aws-lambda": "^10.1.0"
+    "node-html-parser": "^6.1.10"
   },
   "engines": {
-    "node": "18"
+    "node": "22.x"
   },
-  "author": "ForTAI Team"
+  "keywords": [
+    "security",
+    "url-analysis",
+    "ai",
+    "phishing-detection"
+  ],
+  "author": "ForTAI Team",
+  "license": "MIT"
 }
