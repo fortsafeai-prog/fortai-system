@@ -430,6 +430,100 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    // Homepage
+    if (pathname === '/' && method === 'GET') {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(`
+            <!DOCTYPE html>
+            <html lang="sv">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>ForTAI - AI URL Säkerhetsanalys</title>
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body {
+                        font-family: 'Segoe UI', sans-serif;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        min-height: 100vh;
+                        color: white;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    .container {
+                        text-align: center;
+                        max-width: 600px;
+                        padding: 40px;
+                        background: rgba(255,255,255,0.1);
+                        backdrop-filter: blur(10px);
+                        border-radius: 20px;
+                        border: 1px solid rgba(255,255,255,0.2);
+                    }
+                    h1 { font-size: 3rem; margin-bottom: 1rem; }
+                    p { font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.9; }
+                    .status {
+                        background: rgba(40,167,69,0.2);
+                        border: 1px solid rgba(40,167,69,0.5);
+                        padding: 15px;
+                        border-radius: 10px;
+                        margin: 20px 0;
+                        color: #90EE90;
+                    }
+                    .endpoints {
+                        background: rgba(255,255,255,0.1);
+                        padding: 20px;
+                        border-radius: 10px;
+                        margin: 20px 0;
+                        text-align: left;
+                    }
+                    .endpoint {
+                        margin: 10px 0;
+                        font-family: monospace;
+                        background: rgba(0,0,0,0.2);
+                        padding: 8px;
+                        border-radius: 5px;
+                    }
+                    a {
+                        color: #FFD700;
+                        text-decoration: none;
+                        font-weight: bold;
+                    }
+                    a:hover { text-decoration: underline; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1>🛡️ ForTAI</h1>
+                    <p>AI-driven URL Säkerhetsanalys - Cloud Backend</p>
+
+                    <div class="status">
+                        ✅ Service: Online och redo för analys
+                    </div>
+
+                    <div class="endpoints">
+                        <h3>📡 API Endpoints:</h3>
+                        <div class="endpoint">POST /api/analyze/url</div>
+                        <div class="endpoint">GET /api/results/{job_id}</div>
+                        <div class="endpoint">GET /health</div>
+                        <div class="endpoint">GET /docs</div>
+                    </div>
+
+                    <p>
+                        🌐 <a href="/docs">API Documentation</a> |
+                        🔍 <a href="/health">Health Check</a>
+                    </p>
+
+                    <p style="font-size: 0.9rem; margin-top: 2rem; opacity: 0.7;">
+                        Cloud-optimized backend för snabb URL-analys utan tunga beroenden
+                    </p>
+                </div>
+            </body>
+            </html>
+        `);
+        return;
+    }
+
     // 404 for unknown endpoints
     res.writeHead(404, corsHeaders);
     res.end(JSON.stringify({ error: 'Endpoint not found' }));
