@@ -259,177 +259,475 @@ function generateAISummary(verdict, confidence, evidence, targetUrl) {
     return summary;
 }
 
-// Enhanced landing page with comprehensive features
+// Sophisticated black & white landing page inspired by modern minimalist design
 const enhancedLandingPageHtml = `<!DOCTYPE html>
 <html lang="sv">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ForTAI - AI-driven URL Säkerhetsanalys</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
+        :root {
+            --color-primary: #000000;
+            --color-secondary: #ffffff;
+            --color-accent: #333333;
+            --color-text: #1a1a1a;
+            --color-text-light: #666666;
+            --color-border: #e0e0e0;
+            --color-bg-light: #fafafa;
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+            --spacing-xxl: 4rem;
+            --font-size-sm: 0.875rem;
+            --font-size-base: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            --font-size-3xl: 2rem;
+            --font-size-4xl: 2.5rem;
+            --font-size-5xl: 3rem;
+            --border-radius: 0.375rem;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--color-text);
+            background: var(--color-secondary);
+            font-weight: 400;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-lg);
+        }
+
+        /* Header */
         header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 1rem 0;
             position: fixed;
-            width: 100%;
             top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--color-border);
             z-index: 1000;
+            transition: var(--transition);
         }
 
         .nav-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: var(--spacing-md) 0;
         }
 
         .logo {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: white;
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            color: var(--color-primary);
             text-decoration: none;
+            letter-spacing: -0.02em;
         }
 
         .nav-links {
             display: flex;
             list-style: none;
-            gap: 2rem;
+            gap: var(--spacing-xl);
+            align-items: center;
         }
 
         .nav-links a {
-            color: white;
+            color: var(--color-text);
             text-decoration: none;
             font-weight: 500;
-            transition: opacity 0.3s;
+            font-size: var(--font-size-sm);
+            letter-spacing: 0.01em;
+            transition: var(--transition);
+            position: relative;
         }
 
-        .nav-links a:hover { opacity: 0.8; }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--color-primary);
+            transition: var(--transition);
+        }
 
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .cta-nav {
+            background: var(--color-primary) !important;
+            color: var(--color-secondary) !important;
+            padding: var(--spacing-xs) var(--spacing-md);
+            border-radius: var(--border-radius);
+            font-weight: 600;
+        }
+
+        .cta-nav::after { display: none; }
+
+        .cta-nav:hover {
+            background: var(--color-accent) !important;
+            transform: translateY(-1px);
+        }
+
+        /* Hero Section */
         .hero {
+            padding: 120px 0 80px 0;
             text-align: center;
-            padding: 150px 0 100px 0;
-            color: white;
+            background: linear-gradient(180deg, var(--color-bg-light) 0%, var(--color-secondary) 100%);
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
         }
 
         .hero h1 {
-            font-size: 3.5rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(45deg, #fff, #f0f0f0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: var(--font-size-5xl);
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-md);
+            letter-spacing: -0.03em;
+            line-height: 1.1;
         }
 
-        .hero p {
-            font-size: 1.2rem;
-            margin-bottom: 2rem;
-            opacity: 0.9;
+        .hero-subtitle {
+            font-size: var(--font-size-xl);
+            color: var(--color-text-light);
+            margin-bottom: var(--spacing-xl);
+            font-weight: 400;
+            line-height: 1.5;
         }
 
         .cta-button {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 15px 40px;
-            font-size: 1.1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            background: var(--color-primary);
+            color: var(--color-secondary);
+            padding: var(--spacing-md) var(--spacing-xl);
+            font-size: var(--font-size-lg);
             font-weight: 600;
             text-decoration: none;
-            border-radius: 50px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            border: 2px solid var(--color-primary);
         }
 
         .cta-button:hover {
-            background: rgba(255, 255, 255, 0.3);
-            border-color: rgba(255, 255, 255, 0.5);
+            background: var(--color-secondary);
+            color: var(--color-primary);
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
 
-        .features {
-            background: white;
-            padding: 100px 0;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 3rem;
-            margin-top: 3rem;
-        }
-
-        .feature-card {
-            text-align: center;
-            padding: 2rem;
-            border-radius: 15px;
-            background: #f8f9fa;
-            border: 1px solid #e9ecef;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        .feature-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            display: block;
-        }
-
-        .feature-card h3 {
-            font-size: 1.3rem;
-            margin-bottom: 1rem;
-            color: #333;
-        }
-
-        .feature-card p {
-            color: #666;
-            line-height: 1.6;
-        }
-
+        /* Stats Section */
         .stats {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 80px 0;
-            color: white;
-            text-align: center;
+            padding: var(--spacing-xxl) 0;
+            background: var(--color-primary);
+            color: var(--color-secondary);
         }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-
-        .stat-item h3 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .footer {
-            background: #2c3e50;
-            color: white;
+            gap: var(--spacing-xl);
             text-align: center;
-            padding: 40px 0;
+        }
+
+        .stat-item {
+            padding: var(--spacing-lg);
+        }
+
+        .stat-number {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+            letter-spacing: -0.02em;
+        }
+
+        .stat-label {
+            font-size: var(--font-size-base);
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        /* Features Section */
+        .features {
+            padding: var(--spacing-xxl) 0;
+            background: var(--color-secondary);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--spacing-xxl);
+        }
+
+        .section-title {
+            font-size: var(--font-size-4xl);
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-md);
+            letter-spacing: -0.02em;
+        }
+
+        .section-subtitle {
+            font-size: var(--font-size-lg);
+            color: var(--color-text-light);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: var(--spacing-xl);
+        }
+
+        .feature-card {
+            padding: var(--spacing-xl);
+            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius);
+            background: var(--color-secondary);
+            transition: var(--transition);
+            text-align: left;
+        }
+
+        .feature-card:hover {
+            border-color: var(--color-primary);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--color-primary);
+            color: var(--color-secondary);
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-xl);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .feature-title {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .feature-description {
+            color: var(--color-text-light);
+            line-height: 1.6;
+        }
+
+        /* About Section */
+        .about {
+            padding: var(--spacing-xxl) 0;
+            background: var(--color-bg-light);
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-xxl);
+            align-items: center;
+        }
+
+        .about-text h2 {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-md);
+            letter-spacing: -0.02em;
+        }
+
+        .about-text p {
+            color: var(--color-text-light);
+            margin-bottom: var(--spacing-md);
+            line-height: 1.7;
+        }
+
+        .about-visual {
+            padding: var(--spacing-xl);
+            background: var(--color-secondary);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--color-border);
+            text-align: center;
+        }
+
+        .visual-item {
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+            border-radius: var(--border-radius);
+            background: var(--color-bg-light);
+            font-size: var(--font-size-sm);
+            color: var(--color-text-light);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--color-primary);
+            color: var(--color-secondary);
+            padding: var(--spacing-xxl) 0 var(--spacing-lg) 0;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .footer-brand h3 {
+            font-size: var(--font-size-xl);
+            font-weight: 700;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .footer-brand p {
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        .footer-links h4 {
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: var(--color-secondary);
+            text-decoration: none;
+            opacity: 0.8;
+            transition: var(--transition);
+            font-size: var(--font-size-sm);
+        }
+
+        .footer-links a:hover {
+            opacity: 1;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: var(--spacing-lg);
+            text-align: center;
+            opacity: 0.6;
+            font-size: var(--font-size-sm);
+        }
+
+        /* Mobile Hamburger */
+        .mobile-menu-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            padding: var(--spacing-xs);
+        }
+
+        .hamburger-line {
+            width: 24px;
+            height: 2px;
+            background: var(--color-primary);
+            margin: 2px 0;
+            transition: var(--transition);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .about-content {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-lg);
+            }
         }
 
         @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            .hero p { font-size: 1rem; }
-            .nav-links { display: none; }
+            .container {
+                padding: 0 var(--spacing-md);
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-toggle {
+                display: flex;
+            }
+
+            .hero h1 {
+                font-size: var(--font-size-3xl);
+            }
+
+            .hero-subtitle {
+                font-size: var(--font-size-base);
+            }
+
+            .section-title {
+                font-size: var(--font-size-2xl);
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-lg);
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+
+        /* Smooth Scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Loading Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-on-scroll {
+            animation: fadeInUp 0.6s ease-out;
         }
     </style>
 </head>
@@ -437,13 +735,18 @@ const enhancedLandingPageHtml = `<!DOCTYPE html>
     <header>
         <div class="container">
             <div class="nav-container">
-                <a href="/" class="logo">🛡️ ForTAI</a>
+                <a href="/" class="logo">ForTAI</a>
                 <ul class="nav-links">
                     <li><a href="#features">Funktioner</a></li>
-                    <li><a href="#stats">Statistik</a></li>
-                    <li><a href="/chat">Starta analys</a></li>
+                    <li><a href="#about">Om oss</a></li>
                     <li><a href="/docs">API</a></li>
+                    <li><a href="/chat" class="cta-nav">Starta analys</a></li>
                 </ul>
+                <div class="mobile-menu-toggle">
+                    <div class="hamburger-line"></div>
+                    <div class="hamburger-line"></div>
+                    <div class="hamburger-line"></div>
+                </div>
             </div>
         </div>
     </header>
@@ -451,33 +754,35 @@ const enhancedLandingPageHtml = `<!DOCTYPE html>
     <main>
         <section class="hero">
             <div class="container">
-                <h1>AI-driven URL Säkerhetsanalys</h1>
-                <p>Avancerad säkerhetsanalys av webbsidor med artificiell intelligens. Upptäck phishing, malware och andra hot innan de når dig.</p>
-                <a href="/chat" class="cta-button">
-                    🚀 Starta analys nu
-                </a>
+                <div class="hero-content">
+                    <h1>AI-driven URL Säkerhetsanalys</h1>
+                    <p class="hero-subtitle">Avancerad säkerhetsanalys av webbsidor med artificiell intelligens. Upptäck phishing, malware och andra hot innan de når dig.</p>
+                    <a href="/chat" class="cta-button">
+                        <span>Starta analys nu</span>
+                        <span>→</span>
+                    </a>
+                </div>
             </div>
         </section>
 
         <section class="stats">
             <div class="container">
-                <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">Realtidsstatistik</h2>
                 <div class="stats-grid">
                     <div class="stat-item">
-                        <h3>🔍</h3>
-                        <p>Djupanalys med 15+ säkerhetskontroller</p>
+                        <div class="stat-number">15+</div>
+                        <div class="stat-label">Säkerhetskontroller</div>
                     </div>
                     <div class="stat-item">
-                        <h3>⚡</h3>
-                        <p>Analys på under 3 sekunder</p>
+                        <div class="stat-number">< 3s</div>
+                        <div class="stat-label">Analystid</div>
                     </div>
                     <div class="stat-item">
-                        <h3>🇸🇪</h3>
-                        <p>100% på svenska</p>
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">På svenska</div>
                     </div>
                     <div class="stat-item">
-                        <h3>🆓</h3>
-                        <p>Helt gratis att använda</p>
+                        <div class="stat-number">Gratis</div>
+                        <div class="stat-label">Att använda</div>
                     </div>
                 </div>
             </div>
@@ -485,53 +790,70 @@ const enhancedLandingPageHtml = `<!DOCTYPE html>
 
         <section id="features" class="features">
             <div class="container">
-                <h2 style="text-align: center; font-size: 2.5rem; margin-bottom: 1rem;">Varför välja ForTAI?</h2>
-                <p style="text-align: center; font-size: 1.1rem; color: #666; margin-bottom: 3rem;">
-                    Vårt AI-system analyserar webbsidor på djupet för att identifiera säkerhetsrisker
-                </p>
+                <div class="section-header">
+                    <h2 class="section-title">Varför välja ForTAI?</h2>
+                    <p class="section-subtitle">Vårt AI-system analyserar webbsidor på djupet för att identifiera säkerhetsrisker med precision och hastighet.</p>
+                </div>
 
                 <div class="features-grid">
                     <div class="feature-card">
-                        <span class="feature-icon">🔍</span>
-                        <h3>Djupanalys</h3>
-                        <p>15+ säkerhetskontroller: URL-struktur, domänanalys, innehållsinspektion, varumärkesskydd och mycket mer.</p>
+                        <div class="feature-icon">🔍</div>
+                        <h3 class="feature-title">Djupanalys</h3>
+                        <p class="feature-description">15+ säkerhetskontroller: URL-struktur, domänanalys, innehållsinspektion, varumärkesskydd och mycket mer.</p>
                     </div>
 
                     <div class="feature-card">
-                        <span class="feature-icon">🤖</span>
-                        <h3>AI-driven</h3>
-                        <p>Avancerad maskininlärning och AI för att upptäcka nya och okända hot som traditionella metoder missar.</p>
+                        <div class="feature-icon">🤖</div>
+                        <h3 class="feature-title">AI-driven</h3>
+                        <p class="feature-description">Avancerad maskininlärning och AI för att upptäcka nya och okända hot som traditionella metoder missar.</p>
                     </div>
 
                     <div class="feature-card">
-                        <span class="feature-icon">⚡</span>
-                        <h3>Snabb analys</h3>
-                        <p>Få detaljerade resultat inom 2-3 sekunder. Perfekt för att snabbt verifiera länkar i realtid.</p>
+                        <div class="feature-icon">⚡</div>
+                        <h3 class="feature-title">Snabb analys</h3>
+                        <p class="feature-description">Få detaljerade resultat inom 2-3 sekunder. Perfekt för att snabbt verifiera länkar i realtid.</p>
                     </div>
 
                     <div class="feature-card">
-                        <span class="feature-icon">🇸🇪</span>
-                        <h3>Svenska</h3>
-                        <p>Helt på svenska med tydliga AI-genererade förklaringar och rekommendationer som är lätta att förstå.</p>
+                        <div class="feature-icon">🛡️</div>
+                        <h3 class="feature-title">Säkerhetsfokus</h3>
+                        <p class="feature-description">Specialiserat på att upptäcka phishing, malware, varumärkesspoof och andra cyberhot.</p>
                     </div>
 
                     <div class="feature-card">
-                        <span class="feature-icon">🛡️</span>
-                        <h3>Säkerhetsfokus</h3>
-                        <p>Specialiserat på att upptäcka phishing, malware, varumärkesspoof och andra cyberhot.</p>
+                        <div class="feature-icon">🇸🇪</div>
+                        <h3 class="feature-title">Svenska</h3>
+                        <p class="feature-description">Helt på svenska med tydliga AI-genererade förklaringar och rekommendationer som är lätta att förstå.</p>
                     </div>
 
                     <div class="feature-card">
-                        <span class="feature-icon">🌐</span>
-                        <h3>Cloud-optimerad</h3>
-                        <p>Snabb cloud-deployment utan tunga beroenden. Fungerar perfekt på alla enheter och plattformar.</p>
+                        <div class="feature-icon">🌐</div>
+                        <h3 class="feature-title">Cloud-optimerad</h3>
+                        <p class="feature-description">Snabb cloud-deployment utan tunga beroenden. Fungerar perfekt på alla enheter och plattformar.</p>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <div style="text-align: center; margin-top: 4rem;">
-                    <a href="/chat" class="cta-button">
-                        Testa ForTAI nu - Det är gratis! 🚀
-                    </a>
+        <section id="about" class="about">
+            <div class="container">
+                <div class="about-content">
+                    <div class="about-text">
+                        <h2>Säker. Snabb. Svensk.</h2>
+                        <p>ForTAI representerar nästa generation av cybersäkerhet. Vårt AI-system kombinerar avancerad maskininlärning med djup säkerhetsexpertis för att ge dig de mest pålitliga analysresultaten.</p>
+                        <p>Med över 15 olika säkerhetskontroller per URL ger vi dig en omfattande bedömning på sekunder, inte minuter.</p>
+                        <a href="/chat" class="cta-button">
+                            <span>Prova ForTAI</span>
+                            <span>→</span>
+                        </a>
+                    </div>
+                    <div class="about-visual">
+                        <div class="visual-item">🔍 URL-strukturanalys</div>
+                        <div class="visual-item">🛡️ Innehållsinspektion</div>
+                        <div class="visual-item">🎭 Varumärkesskydd</div>
+                        <div class="visual-item">📊 AI-riskbedömning</div>
+                        <div class="visual-item">🇸🇪 Svenska sammanfattningar</div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -539,14 +861,65 @@ const enhancedLandingPageHtml = `<!DOCTYPE html>
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2025 ForTAI. AI-driven cybersäkerhet för alla.</p>
-            <p style="margin-top: 10px; opacity: 0.8;">
-                <a href="/chat" style="color: #ffd700;">Starta din första analys här</a> |
-                <a href="/docs" style="color: #ffd700;">API Documentation</a> |
-                <a href="/health" style="color: #ffd700;">System Status</a>
-            </p>
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <h3>ForTAI</h3>
+                    <p>AI-driven cybersäkerhet för alla. Avancerad URL-analys som skyddar dig mot moderna hot på webben.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Tjänster</h4>
+                    <ul>
+                        <li><a href="/chat">URL-analys</a></li>
+                        <li><a href="/docs">API</a></li>
+                        <li><a href="/health">Status</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Resurser</h4>
+                    <ul>
+                        <li><a href="/docs">Dokumentation</a></li>
+                        <li><a href="#about">Om ForTAI</a></li>
+                        <li><a href="#features">Funktioner</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 ForTAI. AI-driven cybersäkerhet för alla.</p>
+            </div>
         </div>
     </footer>
+
+    <script>
+        // Smooth animations on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-on-scroll');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .stat-item').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Header scroll effect
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 100) {
+                header.style.background = 'rgba(255, 255, 255, 0.98)';
+                header.style.boxShadow = '0 1px 20px rgba(0, 0, 0, 0.1)';
+            } else {
+                header.style.background = 'rgba(255, 255, 255, 0.95)';
+                header.style.boxShadow = 'none';
+            }
+        });
+    </script>
 </body>
 </html>`;
 
