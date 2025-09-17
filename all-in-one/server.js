@@ -2,6 +2,7 @@ const http = require('http');
 const https = require('https');
 const url = require('url');
 const crypto = require('crypto');
+const fs = require('fs');
 
 // Puppeteer for screenshots (cloud-optimized)
 let puppeteer = null;
@@ -9,14 +10,12 @@ let screenshotEnabled = false;
 
 try {
     puppeteer = require('puppeteer');
-    // Temporarily disable screenshots if we're having issues
-    screenshotEnabled = process.env.SCREENSHOT_ENABLED === 'true' && process.env.NODE_ENV === 'production';
+    // Enable screenshots when requested - this is the main feature!
+    screenshotEnabled = process.env.SCREENSHOT_ENABLED === 'true' || process.env.SCREENSHOT_ENABLED === undefined;
     console.log(`📷 Screenshot functionality: ${screenshotEnabled ? 'ENABLED' : 'DISABLED'}`);
-    if (!screenshotEnabled && process.env.SCREENSHOT_ENABLED === 'true') {
-        console.log('📷 Screenshots disabled for development/debugging');
-    }
+    console.log(`📷 Environment: NODE_ENV=${process.env.NODE_ENV}, SCREENSHOT_ENABLED=${process.env.SCREENSHOT_ENABLED}`);
 } catch (error) {
-    console.log('📷 Puppeteer not available - screenshots disabled');
+    console.log('📷 Puppeteer not available - screenshots disabled:', error.message);
     screenshotEnabled = false;
 }
 
@@ -153,27 +152,31 @@ async function performComprehensiveAnalysis(targetUrl) {
 
         // 2.5. Screenshot Capture (cloud-optimized, non-blocking)
         let screenshotResult = null;
-        if (screenshotEnabled && riskScore < 70) { // Only screenshot if not obviously dangerous
+        if (screenshotEnabled) {
             console.log('📷 Attempting screenshot capture...');
             try {
                 // Use Promise.race to add a hard timeout
                 screenshotResult = await Promise.race([
-                    captureScreenshot(targetUrl, 5000), // Reduced timeout to 5 seconds
+                    captureScreenshot(targetUrl, 7000), // 7 seconds for screenshot
                     new Promise((_, reject) =>
-                        setTimeout(() => reject(new Error('Screenshot timeout')), 6000)
+                        setTimeout(() => reject(new Error('Screenshot timeout after 8 seconds')), 8000)
                     )
                 ]);
 
                 if (screenshotResult && screenshotResult.success) {
                     evidence.push("📷 Skärmbild tagen för visuell verifiering");
+                    console.log('📷 Screenshot added to evidence');
                 } else {
                     evidence.push("📷 Kunde inte ta skärmbild (detta påverkar inte säkerhetsanalysen)");
+                    console.log('📷 Screenshot failed but analysis continues');
                 }
             } catch (screenshotError) {
-                console.error('Screenshot capture error:', screenshotError.message);
+                console.error('📷 Screenshot capture error:', screenshotError.message);
                 evidence.push("📷 Skärmbildsfel (detta påverkar inte säkerhetsanalysen)");
                 screenshotResult = { success: false, error: screenshotError.message };
             }
+        } else {
+            console.log('📷 Screenshot functionality disabled');
         }
 
         // 3. Brand spoofing detection
@@ -289,8 +292,8 @@ async function fetchPageContent(targetUrl, timeout = 8000) {
     });
 }
 
-// Cloud-optimized screenshot function
-async function captureScreenshot(targetUrl, timeout = 10000) {
+// Cloud-optimized screenshot function for Render.com
+async function captureScreenshot(targetUrl, timeout = 8000) {
     if (!screenshotEnabled || !puppeteer) {
         return {
             success: false,
@@ -304,7 +307,7 @@ async function captureScreenshot(targetUrl, timeout = 10000) {
     try {
         console.log(`📷 Starting screenshot capture for: ${targetUrl}`);
 
-        // Launch browser with cloud-optimized settings for Render.com
+        // Enhanced browser options for Render.com cloud environment
         const browserOptions = {
             headless: 'new',
             args: [
@@ -314,75 +317,124 @@ async function captureScreenshot(targetUrl, timeout = 10000) {
                 '--disable-accelerated-2d-canvas',
                 '--no-first-run',
                 '--no-zygote',
-                '--single-process',
+                '--single-process', // Critical for cloud environments
                 '--disable-gpu',
                 '--disable-background-timer-throttling',
                 '--disable-backgrounding-occluded-windows',
                 '--disable-renderer-backgrounding',
                 '--disable-web-security',
-                '--disable-features=TranslateUI',
+                '--disable-features=TranslateUI,VizDisplayCompositor',
                 '--disable-ipc-flooding-protection',
-                '--window-size=1280,720'
+                '--disable-extensions',
+                '--disable-plugins',
+                '--disable-default-apps',
+                '--disable-sync',
+                '--disable-translate',
+                '--hide-scrollbars',
+                '--mute-audio',
+                '--no-default-browser-check',
+                '--no-pings',
+                '--window-size=1280,720',
+                '--virtual-time-budget=5000' // 5 second budget for page load
             ],
-            timeout: timeout
+            timeout: timeout,
+            ignoreDefaultArgs: ['--disable-extensions'], // Allow some control
+            defaultViewport: { width: 1280, height: 720 }
         };
 
-        // Try to find Chrome/Chromium executable for cloud environments
-        const possibleChromePaths = [
-            process.env.PUPPETEER_EXECUTABLE_PATH,
-            '/opt/render/project/.render/chrome/opt/google/chrome/chrome',
-            '/usr/bin/chromium-browser',
-            '/usr/bin/chromium',
-            '/usr/bin/google-chrome-stable',
-            '/usr/bin/google-chrome'
-        ];
+        // Enhanced Chrome detection for cloud environments including Render.com
+        console.log(`📷 Detecting Chrome executable...`);
+        if (!process.env.PUPPETEER_SKIP_CHROMIUM_DOWNLOAD || process.env.PUPPETEER_SKIP_CHROMIUM_DOWNLOAD === 'false') {
+            console.log(`📷 Using bundled Chromium from Puppeteer`);
+            // Let Puppeteer use its bundled Chromium - most reliable for cloud
+        } else {
+            const possibleChromePaths = [
+                process.env.PUPPETEER_EXECUTABLE_PATH,
+                '/opt/render/project/.render/chrome/opt/google/chrome/chrome',
+                '/opt/google/chrome/chrome',
+                '/usr/bin/chromium-browser',
+                '/usr/bin/chromium',
+                '/usr/bin/google-chrome-stable',
+                '/usr/bin/google-chrome',
+                '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' // macOS fallback
+            ];
 
-        for (const chromePath of possibleChromePaths) {
-            if (chromePath) {
-                try {
-                    // Check if path exists (simple check)
-                    browserOptions.executablePath = chromePath;
-                    console.log(`📷 Trying Chrome path: ${chromePath}`);
-                    break;
-                } catch (e) {
-                    console.log(`📷 Chrome path not available: ${chromePath}`);
+            for (const chromePath of possibleChromePaths) {
+                if (chromePath) {
+                    try {
+                        if (fs.existsSync(chromePath)) {
+                            browserOptions.executablePath = chromePath;
+                            console.log(`📷 Found Chrome at: ${chromePath}`);
+                            break;
+                        }
+                    } catch (e) {
+                        console.log(`📷 Chrome path check failed: ${chromePath}`);
+                    }
                 }
             }
         }
 
+        console.log(`📷 Launching browser with options:`, JSON.stringify(browserOptions.args.slice(0, 5), null, 2));
         browser = await puppeteer.launch(browserOptions);
+        console.log(`📷 Browser launched successfully`);
+
         const page = await browser.newPage();
+        console.log(`📷 New page created`);
 
-        // Set viewport and user agent
+        // Set viewport and user agent for realistic browsing
         await page.setViewport({ width: 1280, height: 720 });
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 ForTAI-SecurityBot/1.0');
 
-        // Set shorter timeout for page navigation
-        await page.setDefaultNavigationTimeout(timeout);
-        await page.setDefaultTimeout(timeout);
+        // Set timeouts - be more aggressive for cloud environments
+        await page.setDefaultNavigationTimeout(6000); // 6 seconds max
+        await page.setDefaultTimeout(6000);
 
-        // Navigate to page with error handling
-        console.log(`📷 Navigating to: ${targetUrl}`);
-        await page.goto(targetUrl, {
-            waitUntil: 'domcontentloaded',
-            timeout: timeout
+        // Block unnecessary resources to speed up loading
+        await page.setRequestInterception(true);
+        page.on('request', (req) => {
+            const resourceType = req.resourceType();
+            if (['stylesheet', 'font', 'media'].includes(resourceType)) {
+                req.abort(); // Skip CSS, fonts, videos to load faster
+            } else {
+                req.continue();
+            }
         });
 
-        // Wait a bit for dynamic content to load
-        await page.waitForTimeout(2000);
+        // Navigate to page with comprehensive error handling
+        console.log(`📷 Navigating to: ${targetUrl}`);
+        try {
+            await page.goto(targetUrl, {
+                waitUntil: 'domcontentloaded', // Don't wait for everything
+                timeout: 5000 // 5 second navigation timeout
+            });
+            console.log(`📷 Page loaded successfully`);
+        } catch (navigationError) {
+            console.log(`📷 Navigation warning: ${navigationError.message}, continuing with screenshot...`);
+            // Continue anyway - page might be partially loaded
+        }
 
-        // Get page title
-        const pageTitle = await page.title().catch(() => 'Unknown Title');
+        // Brief wait for any critical content
+        await page.waitForTimeout(1000); // Reduced to 1 second
 
-        // Take screenshot
+        // Get page title with fallback
+        let pageTitle = 'Unknown Title';
+        try {
+            pageTitle = await page.title() || 'No Title';
+            console.log(`📷 Page title: ${pageTitle}`);
+        } catch (titleError) {
+            console.log(`📷 Could not get page title: ${titleError.message}`);
+        }
+
+        // Take screenshot with error handling
         console.log('📷 Capturing screenshot...');
         const screenshot = await page.screenshot({
             type: 'png',
-            fullPage: false,
-            encoding: 'base64'
+            fullPage: false, // Viewport only for faster capture
+            encoding: 'base64',
+            quality: 80 // Slightly compress for faster transfer
         });
 
-        console.log(`📷 Screenshot captured successfully - Size: ${screenshot.length} bytes`);
+        console.log(`📷 Screenshot captured successfully - Size: ${Math.round(screenshot.length / 1024)}KB`);
 
         return {
             success: true,
