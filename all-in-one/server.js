@@ -1027,9 +1027,9 @@ const server = http.createServer(async (req, res) => {
                             ...result,
                             completed_at: new Date().toISOString()
                         });
-                        console.log(\`✅ Comprehensive analysis completed for job \${jobId}\`);
+                        console.log(`✅ Comprehensive analysis completed for job ${jobId}`);
                     } catch (error) {
-                        console.error(\`❌ Analysis failed for job \${jobId}:\`, error);
+                        console.error(`❌ Analysis failed for job ${jobId}:`, error);
                         jobs.set(jobId, {
                             ...jobs.get(jobId),
                             status: 'failed',
@@ -1068,7 +1068,7 @@ const server = http.createServer(async (req, res) => {
     // API documentation
     if (pathname === '/docs' && method === 'GET') {
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        res.end(\`
+        res.end(`
             <!DOCTYPE html>
             <html lang="sv">
             <head>
@@ -1167,7 +1167,7 @@ const server = http.createServer(async (req, res) => {
                 </div>
             </body>
             </html>
-        \`);
+        `);
         return;
     }
 
@@ -1179,11 +1179,11 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
     console.log('🚀 ForTAI Enhanced All-in-One Server');
     console.log('='.repeat(70));
-    console.log(\`🌐 Server running on port \${PORT}\`);
-    console.log(\`🏠 Homepage: http://localhost:\${PORT}/\`);
-    console.log(\`💬 Chat Interface: http://localhost:\${PORT}/chat\`);
-    console.log(\`🔍 Health Check: http://localhost:\${PORT}/health\`);
-    console.log(\`📚 API Docs: http://localhost:\${PORT}/docs\`);
+    console.log(`🌐 Server running on port ${PORT}`);
+    console.log(`🏠 Homepage: http://localhost:${PORT}/`);
+    console.log(`💬 Chat Interface: http://localhost:${PORT}/chat`);
+    console.log(`🔍 Health Check: http://localhost:${PORT}/health`);
+    console.log(`📚 API Docs: http://localhost:${PORT}/docs`);
     console.log('');
     console.log('🔥 Enhanced Features:');
     console.log('  ✅ Comprehensive landing page with stats');
@@ -1200,11 +1200,11 @@ server.listen(PORT, () => {
 
 // Graceful shutdown
 process.on('SIGINT', () => {
-    console.log('\\n\\n🛑 Shutting down ForTAI Enhanced server...');
+    console.log('\n\n🛑 Shutting down ForTAI Enhanced server...');
     process.exit(0);
 });
 
 process.on('SIGTERM', () => {
-    console.log('\\n\\n🛑 Shutting down ForTAI Enhanced server...');
+    console.log('\n\n🛑 Shutting down ForTAI Enhanced server...');
     process.exit(0);
 });
