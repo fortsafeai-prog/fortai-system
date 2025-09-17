@@ -11,7 +11,7 @@
     "node-html-parser": "^6.1.10"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": "22.x"
   },
   "keywords": [
     "url-analysis",
