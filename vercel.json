@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/index.js": {
+    "vercel-api/index.js": {
       "maxDuration": 30
     }
   },
