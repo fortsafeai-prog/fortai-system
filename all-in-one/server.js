@@ -4,18 +4,18 @@ const url = require('url');
 const crypto = require('crypto');
 const fs = require('fs');
 
-// Puppeteer for screenshots (cloud-optimized)
-let puppeteer = null;
+// Playwright for screenshots (cloud-optimized)
+let playwright = null;
 let screenshotEnabled = false;
 
 try {
-    puppeteer = require('puppeteer');
+    playwright = require('playwright');
     // Enable screenshots when requested - this is the main feature!
     screenshotEnabled = process.env.SCREENSHOT_ENABLED === 'true' || process.env.SCREENSHOT_ENABLED === undefined;
     console.log(`📷 Screenshot functionality: ${screenshotEnabled ? 'ENABLED' : 'DISABLED'}`);
     console.log(`📷 Environment: NODE_ENV=${process.env.NODE_ENV}, SCREENSHOT_ENABLED=${process.env.SCREENSHOT_ENABLED}`);
 } catch (error) {
-    console.log('📷 Puppeteer not available - screenshots disabled:', error.message);
+    console.log('📷 Playwright not available - screenshots disabled:', error.message);
     screenshotEnabled = false;
 }
 
@@ -234,12 +234,12 @@ async function performComprehensiveAnalysis(targetUrl) {
         features,
         swedish_summary: swedishSummary,
         artifacts: {
-            screenshot_base64: screenshotResult?.screenshot_base64 || null,
-            page_title: screenshotResult?.page_title || `Analys för ${new URL(targetUrl).hostname}`,
-            screenshot_success: screenshotResult?.success || false,
-            screenshot_error: screenshotResult?.error || null,
+            screenshot_base64: (screenshotResult && screenshotResult.screenshot_base64) || null,
+            page_title: (screenshotResult && screenshotResult.page_title) || `Analys för ${new URL(targetUrl).hostname}`,
+            screenshot_success: (screenshotResult && screenshotResult.success) || false,
+            screenshot_error: (screenshotResult && screenshotResult.error) || null,
             note: screenshotEnabled
-                ? (screenshotResult?.success ? "Skärmbild tillgänglig" : "Skärmbild misslyckades")
+                ? ((screenshotResult && screenshotResult.success) ? "Skärmbild tillgänglig" : "Skärmbild misslyckades")
                 : "Skärmbild inte aktiverad i denna miljö"
         }
     };
@@ -292,9 +292,9 @@ async function fetchPageContent(targetUrl, timeout = 8000) {
     });
 }
 
-// Cloud-optimized screenshot function for Render.com
+// Playwright screenshot function (more reliable than Puppeteer)
 async function captureScreenshot(targetUrl, timeout = 8000) {
-    if (!screenshotEnabled || !puppeteer) {
+    if (!screenshotEnabled || !playwright) {
         return {
             success: false,
             screenshot_base64: null,
@@ -304,119 +304,58 @@ async function captureScreenshot(targetUrl, timeout = 8000) {
     }
 
     let browser = null;
-    try {
-        console.log(`📷 Starting screenshot capture for: ${targetUrl}`);
+    let context = null;
+    let page = null;
 
-        // Enhanced browser options for Render.com cloud environment
-        const browserOptions = {
-            headless: 'new',
+    try {
+        console.log(`📷 Starting Playwright screenshot capture for: ${targetUrl}`);
+
+        // Launch Chromium with Playwright (more stable than Puppeteer)
+        browser = await playwright.chromium.launch({
+            headless: true,
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
                 '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--no-first-run',
-                '--no-zygote',
-                '--single-process', // Critical for cloud environments
-                '--disable-gpu',
-                '--disable-background-timer-throttling',
-                '--disable-backgrounding-occluded-windows',
-                '--disable-renderer-backgrounding',
                 '--disable-web-security',
-                '--disable-features=TranslateUI,VizDisplayCompositor',
-                '--disable-ipc-flooding-protection',
-                '--disable-extensions',
-                '--disable-plugins',
-                '--disable-default-apps',
-                '--disable-sync',
-                '--disable-translate',
-                '--hide-scrollbars',
-                '--mute-audio',
-                '--no-default-browser-check',
-                '--no-pings',
-                '--window-size=1280,720',
-                '--virtual-time-budget=5000' // 5 second budget for page load
-            ],
-            timeout: timeout,
-            ignoreDefaultArgs: ['--disable-extensions'], // Allow some control
-            defaultViewport: { width: 1280, height: 720 }
-        };
-
-        // Enhanced Chrome detection for cloud environments including Render.com
-        console.log(`📷 Detecting Chrome executable...`);
-        if (!process.env.PUPPETEER_SKIP_CHROMIUM_DOWNLOAD || process.env.PUPPETEER_SKIP_CHROMIUM_DOWNLOAD === 'false') {
-            console.log(`📷 Using bundled Chromium from Puppeteer`);
-            // Let Puppeteer use its bundled Chromium - most reliable for cloud
-        } else {
-            const possibleChromePaths = [
-                process.env.PUPPETEER_EXECUTABLE_PATH,
-                '/opt/render/project/.render/chrome/opt/google/chrome/chrome',
-                '/opt/google/chrome/chrome',
-                '/usr/bin/chromium-browser',
-                '/usr/bin/chromium',
-                '/usr/bin/google-chrome-stable',
-                '/usr/bin/google-chrome',
-                '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' // macOS fallback
-            ];
-
-            for (const chromePath of possibleChromePaths) {
-                if (chromePath) {
-                    try {
-                        if (fs.existsSync(chromePath)) {
-                            browserOptions.executablePath = chromePath;
-                            console.log(`📷 Found Chrome at: ${chromePath}`);
-                            break;
-                        }
-                    } catch (e) {
-                        console.log(`📷 Chrome path check failed: ${chromePath}`);
-                    }
-                }
-            }
-        }
-
-        console.log(`📷 Launching browser with options:`, JSON.stringify(browserOptions.args.slice(0, 5), null, 2));
-        browser = await puppeteer.launch(browserOptions);
-        console.log(`📷 Browser launched successfully`);
-
-        const page = await browser.newPage();
-        console.log(`📷 New page created`);
-
-        // Set viewport and user agent for realistic browsing
-        await page.setViewport({ width: 1280, height: 720 });
-        await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 ForTAI-SecurityBot/1.0');
-
-        // Set timeouts - be more aggressive for cloud environments
-        await page.setDefaultNavigationTimeout(6000); // 6 seconds max
-        await page.setDefaultTimeout(6000);
-
-        // Block unnecessary resources to speed up loading
-        await page.setRequestInterception(true);
-        page.on('request', (req) => {
-            const resourceType = req.resourceType();
-            if (['stylesheet', 'font', 'media'].includes(resourceType)) {
-                req.abort(); // Skip CSS, fonts, videos to load faster
-            } else {
-                req.continue();
-            }
+                '--disable-features=VizDisplayCompositor',
+                '--no-first-run',
+                '--disable-default-apps'
+            ]
         });
 
-        // Navigate to page with comprehensive error handling
+        console.log(`📷 Playwright browser launched successfully`);
+
+        // Create new context with viewport
+        context = await browser.newContext({
+            viewport: { width: 1280, height: 720 },
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 ForTAI-SecurityBot/1.0'
+        });
+
+        // Create new page
+        page = await context.newPage();
+        console.log(`📷 New page created`);
+
+        // Set timeout
+        page.setDefaultTimeout(timeout);
+
+        // Navigate to URL with error handling
         console.log(`📷 Navigating to: ${targetUrl}`);
         try {
             await page.goto(targetUrl, {
-                waitUntil: 'domcontentloaded', // Don't wait for everything
-                timeout: 5000 // 5 second navigation timeout
+                waitUntil: 'domcontentloaded',
+                timeout: 6000
             });
             console.log(`📷 Page loaded successfully`);
         } catch (navigationError) {
-            console.log(`📷 Navigation warning: ${navigationError.message}, continuing with screenshot...`);
-            // Continue anyway - page might be partially loaded
+            console.log(`📷 Navigation warning: ${navigationError.message}, attempting screenshot anyway...`);
+            // Continue - page might be partially loaded
         }
 
-        // Brief wait for any critical content
-        await page.waitForTimeout(1000); // Reduced to 1 second
+        // Wait briefly for content to load
+        await page.waitForTimeout(1500);
 
-        // Get page title with fallback
+        // Get page title
         let pageTitle = 'Unknown Title';
         try {
             pageTitle = await page.title() || 'No Title';
@@ -425,20 +364,20 @@ async function captureScreenshot(targetUrl, timeout = 8000) {
             console.log(`📷 Could not get page title: ${titleError.message}`);
         }
 
-        // Take screenshot with error handling
-        console.log('📷 Capturing screenshot...');
-        const screenshot = await page.screenshot({
+        // Take screenshot
+        console.log('📷 Capturing screenshot with Playwright...');
+        const screenshotBuffer = await page.screenshot({
             type: 'png',
-            fullPage: false, // Viewport only for faster capture
-            encoding: 'base64',
-            quality: 80 // Slightly compress for faster transfer
+            fullPage: false
         });
 
-        console.log(`📷 Screenshot captured successfully - Size: ${Math.round(screenshot.length / 1024)}KB`);
+        // Convert to base64
+        const screenshot_base64 = screenshotBuffer.toString('base64');
+        console.log(`📷 Screenshot captured successfully - Size: ${Math.round(screenshot_base64.length / 1024)}KB`);
 
         return {
             success: true,
-            screenshot_base64: screenshot,
+            screenshot_base64: screenshot_base64,
             page_title: pageTitle,
             error: null
         };
@@ -452,13 +391,14 @@ async function captureScreenshot(targetUrl, timeout = 8000) {
             error: error.message
         };
     } finally {
-        if (browser) {
-            try {
-                await browser.close();
-                console.log('📷 Browser closed successfully');
-            } catch (closeError) {
-                console.error('📷 Error closing browser:', closeError.message);
-            }
+        // Clean up resources
+        try {
+            if (page) await page.close();
+            if (context) await context.close();
+            if (browser) await browser.close();
+            console.log('📷 Playwright browser closed successfully');
+        } catch (closeError) {
+            console.error('📷 Error closing Playwright browser:', closeError.message);
         }
     }
 }

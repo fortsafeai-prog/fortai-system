@@ -8,7 +8,11 @@
       "Bash(git branch:*)",
       "Bash(git commit:*)",
       "Bash(npm install:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(npm start)",
+      "Bash(npx playwright:*)",
+      "Bash(pkill:*)",
+      "Bash(PORT=3000 npm start)"
     ],
     "deny": [],
     "ask": []

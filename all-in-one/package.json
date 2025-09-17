@@ -10,7 +10,7 @@
     "postinstall": "node -e \"console.log('Installing Chrome dependencies for Render.com...')\""
   },
   "dependencies": {
-    "puppeteer": "^21.5.0"
+    "playwright": "^1.40.0"
   },
   "engines": {
     "node": "22.x"
