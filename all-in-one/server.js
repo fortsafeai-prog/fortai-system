@@ -9,10 +9,15 @@ let screenshotEnabled = false;
 
 try {
     puppeteer = require('puppeteer');
-    screenshotEnabled = process.env.SCREENSHOT_ENABLED === 'true';
+    // Temporarily disable screenshots if we're having issues
+    screenshotEnabled = process.env.SCREENSHOT_ENABLED === 'true' && process.env.NODE_ENV === 'production';
     console.log(`📷 Screenshot functionality: ${screenshotEnabled ? 'ENABLED' : 'DISABLED'}`);
+    if (!screenshotEnabled && process.env.SCREENSHOT_ENABLED === 'true') {
+        console.log('📷 Screenshots disabled for development/debugging');
+    }
 } catch (error) {
     console.log('📷 Puppeteer not available - screenshots disabled');
+    screenshotEnabled = false;
 }
 
 const PORT = process.env.PORT || 8080;
@@ -28,6 +33,7 @@ function generateJobId() {
 // Enhanced URL analysis with multiple risk factors
 async function performComprehensiveAnalysis(targetUrl) {
     console.log(`🔍 Starting comprehensive analysis for: ${targetUrl}`);
+    const startTime = Date.now();
 
     let riskScore = 0;
     const evidence = [];
@@ -36,6 +42,7 @@ async function performComprehensiveAnalysis(targetUrl) {
 
     try {
         const urlObj = new URL(targetUrl);
+        console.log(`🔍 Step 1: URL Structure Analysis for ${urlObj.hostname}`);
 
         // 1. URL Structure Analysis
         features.domain = urlObj.hostname;
@@ -107,6 +114,7 @@ async function performComprehensiveAnalysis(targetUrl) {
         }
 
         // 2. Content Analysis (if accessible)
+        console.log(`🔍 Step 2: Content Analysis`);
         try {
             pageData = await fetchPageContent(targetUrl);
 
@@ -143,25 +151,33 @@ async function performComprehensiveAnalysis(targetUrl) {
             evidence.push("🚫 Kunde inte hämta sidinnehåll");
         }
 
-        // 2.5. Screenshot Capture (cloud-optimized)
+        // 2.5. Screenshot Capture (cloud-optimized, non-blocking)
         let screenshotResult = null;
-        try {
-            if (screenshotEnabled && riskScore < 70) { // Only screenshot if not obviously dangerous
-                console.log('📷 Attempting screenshot capture...');
-                screenshotResult = await captureScreenshot(targetUrl, 8000);
+        if (screenshotEnabled && riskScore < 70) { // Only screenshot if not obviously dangerous
+            console.log('📷 Attempting screenshot capture...');
+            try {
+                // Use Promise.race to add a hard timeout
+                screenshotResult = await Promise.race([
+                    captureScreenshot(targetUrl, 5000), // Reduced timeout to 5 seconds
+                    new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('Screenshot timeout')), 6000)
+                    )
+                ]);
 
-                if (screenshotResult.success) {
+                if (screenshotResult && screenshotResult.success) {
                     evidence.push("📷 Skärmbild tagen för visuell verifiering");
                 } else {
                     evidence.push("📷 Kunde inte ta skärmbild (detta påverkar inte säkerhetsanalysen)");
                 }
+            } catch (screenshotError) {
+                console.error('Screenshot capture error:', screenshotError.message);
+                evidence.push("📷 Skärmbildsfel (detta påverkar inte säkerhetsanalysen)");
+                screenshotResult = { success: false, error: screenshotError.message };
             }
-        } catch (screenshotError) {
-            console.error('Screenshot capture error:', screenshotError.message);
-            evidence.push("📷 Skärmbildsfel (detta påverkar inte säkerhetsanalysen)");
         }
 
         // 3. Brand spoofing detection
+        console.log(`🔍 Step 3: Brand Spoofing Detection`);
         const trustedBrands = [
             'google', 'microsoft', 'apple', 'amazon', 'paypal', 'facebook',
             'instagram', 'twitter', 'linkedin', 'github', 'spotify', 'netflix'
@@ -182,6 +198,7 @@ async function performComprehensiveAnalysis(targetUrl) {
     }
 
     // 4. Risk Assessment
+    console.log(`🔍 Step 4: Risk Assessment - Score: ${riskScore}`);
     let verdict, confidence;
     if (riskScore >= 70) {
         verdict = "dangerous";
@@ -200,7 +217,11 @@ async function performComprehensiveAnalysis(targetUrl) {
     }
 
     // Generate Swedish AI summary
+    console.log(`🔍 Step 5: Generating AI Summary`);
     const swedishSummary = generateAISummary(verdict, confidence, evidence, targetUrl);
+
+    const totalTime = Date.now() - startTime;
+    console.log(`✅ Analysis completed in ${totalTime}ms - Verdict: ${verdict} (${Math.round(confidence)}%)`);
 
     return {
         verdict,
